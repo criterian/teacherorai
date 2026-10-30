@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Teacher or AI?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: projector-first game board. Sticky scoreboard strip on top, round tabs, one large "marking desk" stage below. */
+:root{
+  --paper:#EEF2F7; --surface:#FFFFFF; --surface-2:#F6F8FB; --ink:#132036; --muted:#586379; --line:#D5DCE6;
+  --pen:#C8322A; --pen-soft:#FBE7E5; --ai:#2B57D6; --ai-soft:#E4EBFC; --gold:#E0A800; --gold-soft:#FFF4D1;
+  --ok:#1C7C4A; --ok-soft:#DFF3E8;
+  --t1:#0E7F81; --t2:#6A4BC0; --t3:#B86A00; --t4:#BE2F73;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0D1420; --surface:#152033; --surface-2:#1A273C; --ink:#E7ECF4; --muted:#9BA7BA; --line:#2A3850;
+  --pen:#FF6F63; --pen-soft:#3A1F22; --ai:#86A6FF; --ai-soft:#1D2A4D; --gold:#F5C542; --gold-soft:#3A3115;
+  --ok:#5FD39A; --ok-soft:#173527;
+  --t1:#3FC5C7; --t2:#A88DFF; --t3:#F2A83B; --t4:#FF73B1; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0D1420; --surface:#152033; --surface-2:#1A273C; --ink:#E7ECF4; --muted:#9BA7BA; --line:#2A3850;
+  --pen:#FF6F63; --pen-soft:#3A1F22; --ai:#86A6FF; --ai-soft:#1D2A4D; --gold:#F5C542; --gold-soft:#3A3115;
+  --ok:#5FD39A; --ok-soft:#173527;
+  --t1:#3FC5C7; --t2:#A88DFF; --t3:#F2A83B; --t4:#FF73B1; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--ai);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:12px}
+.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
+.brand h1{font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:0;line-height:1.1}
+.brand h1 .or{color:var(--muted);font-weight:500}
+.brand h1 .t{color:var(--pen)} .brand h1 .a{color:var(--ai)}
+.brand small{color:var(--muted);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+.board{display:flex;flex-wrap:wrap;gap:8px}
+.team{display:flex;align-items:center;gap:10px;padding:6px 8px 6px 12px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line)}
+.team .sw{width:12px;height:12px;border-radius:50%;background:var(--c)}
+.team .nm{font-weight:700;font-size:.92rem;max-width:12ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team .pts{font-family:var(--mono);font-weight:700;font-size:1.15rem;min-width:2ch;text-align:right;font-variant-numeric:tabular-nums}
+.team .adj{display:flex;gap:2px}
+.team .adj button{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:.9rem;line-height:1;padding:0}
+.team.lead{border-color:var(--gold);background:var(--gold-soft)}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;font-size:.88rem;font-weight:700}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+.tab{flex:0 0 auto;border:1px solid transparent;background:none;border-radius:8px;padding:8px 14px;font-family:var(--display);font-weight:700;font-size:.95rem;color:var(--muted);white-space:nowrap}
+.tab .n{font-family:var(--mono);font-size:.8rem;margin-right:6px;opacity:.8}
+.tab[aria-current="true"]{background:var(--ink);color:var(--paper)}
+.tab:hover:not([aria-current="true"]){border-color:var(--line);color:var(--ink)}
+
+main .wrap{padding-block:8px 48px;display:grid;gap:20px}
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--gold-soft);border:1px solid var(--gold);border-radius:var(--r);padding:10px 14px;font-size:.92rem}
+.notice b{white-space:nowrap}
+
+.stagehead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.stagehead h2{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,3.2vw,2.4rem);margin:0;line-height:1.1;text-wrap:balance}
+.stagehead p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.pager{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.95rem}
+.pager button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.1rem}
+.pager button:disabled{opacity:.35;cursor:default}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;min-width:0}
+.label{font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 6px}
+.task{font-size:.95rem}
+.task p{margin:0 0 8px}
+details summary{cursor:pointer;font-weight:700;font-size:.92rem;color:var(--ai)}
+.rubric{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:6px}
+.rubric li{display:grid;grid-template-columns:2.2em minmax(0,1fr);gap:8px;font-size:.9rem}
+.rubric .lv{font-family:var(--mono);font-weight:700;text-align:center;background:var(--surface-2);border-radius:6px;padding:1px 0;height:fit-content}
+
+/* Answer sheet: ruled exam paper */
+.sheet{position:relative;background:
+  repeating-linear-gradient(to bottom,transparent 0,transparent 35px,var(--line) 35px,var(--line) 36px),var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:14px 22px 18px 54px;min-width:0}
+.sheet::before{content:"";position:absolute;left:38px;top:0;bottom:0;width:2px;background:var(--pen);opacity:.45}
+.sheet .sid{font-family:var(--mono);font-weight:700;font-size:.85rem;color:var(--muted);line-height:36px}
+.sheet .ans{font-size:clamp(1.15rem,2vw,1.4rem);line-height:36px;margin:0}
+.sheet .mark{position:absolute;right:16px;top:10px;font-family:var(--mono);font-weight:700;font-size:1.6rem;color:var(--pen);border:3px solid var(--pen);border-radius:50%;width:64px;height:64px;display:grid;place-items:center;transform:rotate(-8deg);background:var(--surface)}
+.sheet .mark small{font-size:.7rem;display:block;margin-top:-6px}
+
+/* Team inputs */
+.inputs{display:grid;gap:10px}
+.irow{display:grid;grid-template-columns:minmax(0,9rem) minmax(0,1fr);gap:10px;align-items:center}
+@media (max-width:520px){.irow{grid-template-columns:minmax(0,1fr)}}
+.iname{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.iname .sw{flex:0 0 12px;height:12px;border-radius:50%;background:var(--c)}
+.iname span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{min-width:44px;height:44px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface-2);font-family:var(--mono);font-weight:700;font-size:1.05rem;padding:0 10px}
+.seg.words button{font-family:var(--body);font-size:.88rem;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.seg button:disabled{cursor:default}
+.seg button.right{box-shadow:0 0 0 3px var(--ok)}
+.qline{font-weight:700;margin:0 0 8px}
+
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border-radius:8px;padding:11px 18px;font-weight:700;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);font-family:var(--display);font-size:1rem}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.danger{background:var(--pen);border-color:var(--pen);color:#fff}
+.hint{color:var(--muted);font-size:.88rem}
+
+/* Reveal */
+.reveal{display:grid;gap:14px;animation:rise .35s ease-out}
+@keyframes rise{from{transform:translateY(6px)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.reveal{animation:none}}
+.scale{position:relative;height:96px;margin:6px 8px 0}
+.scale .axis{position:absolute;left:0;right:0;top:46px;height:2px;background:var(--line)}
+.scale .tick{position:absolute;top:56px;transform:translateX(-50%);font-family:var(--mono);font-weight:700;color:var(--muted)}
+.scale .dot{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--c);transform:translate(-50%,0);border:2px solid var(--surface)}
+.scale .tm{position:absolute;top:30px;width:4px;height:34px;background:var(--pen);transform:translateX(-50%);border-radius:2px}
+.scale .tm::after{content:"Teacher";position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:.72rem;font-weight:700;color:var(--pen);letter-spacing:.05em;text-transform:uppercase}
+.scale .am{position:absolute;top:30px;width:4px;height:34px;background:var(--ai);transform:translateX(-50%);border-radius:2px}
+.scale .am::after{content:"AI";position:absolute;bottom:-40px;left:50%;transform:translateX(-50%);font-size:.72rem;font-weight:700;color:var(--ai);letter-spacing:.05em}
+.kpis{display:flex;flex-wrap:wrap;gap:10px}
+.kpi{border-radius:8px;padding:8px 14px;background:var(--surface-2);border:1px solid var(--line);min-width:0}
+.kpi .k{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.kpi .v{font-family:var(--mono);font-weight:700;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.kpi.t .v{color:var(--pen)} .kpi.a .v{color:var(--ai)}
+.aibox{background:var(--ai-soft);border:1px solid var(--ai);border-radius:var(--r);padding:12px 16px}
+.aibox .label{color:var(--ai)}
+.aibox p{margin:0}
+.decision{border-left:4px solid var(--pen);background:var(--pen-soft);padding:10px 14px;border-radius:0 var(--r) var(--r) 0}
+.decision.ok{border-left-color:var(--ok);background:var(--ok-soft)}
+.award{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 12px;font-weight:700;font-size:.88rem;background:var(--surface-2);border:1px solid var(--line)}
+.chip .sw{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.chip.plus{background:var(--gold-soft);border-color:var(--gold)}
+
+/* Twins */
+.twins{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.twins{grid-template-columns:minmax(0,1fr)}}
+.twins .tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line);margin-bottom:4px}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
+td.diff{color:var(--pen)}
+
+/* Feedback card */
+.fcard{background:var(--surface);border:2px dashed var(--ai);border-radius:var(--r);padding:20px 22px;min-width:0}
+.fcard .label{color:var(--ai)}
+.fcard q{display:block;font-size:clamp(1.15rem,2vw,1.45rem);quotes:none;line-height:1.45}
+.fcard .ctx{margin-top:12px;font-size:.9rem;color:var(--muted)}
+.legend{display:grid;gap:6px;margin:0;padding:0;list-style:none;font-size:.9rem}
+.legend b{display:inline-block;min-width:6.5rem}
+
+/* Intro & debrief */
+.rounds{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.round{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:6px;align-content:start}
+.round .no{font-family:var(--mono);font-weight:700;color:var(--muted);font-size:.85rem}
+.round h3{font-family:var(--display);margin:0;font-size:1.15rem}
+.round p{margin:0;font-size:.92rem;color:var(--muted)}
+.round .pt{font-size:.82rem;font-weight:700;color:var(--ink)}
+.lead-p{font-size:1.15rem;max-width:62ch;margin:0}
+.podium{display:grid;gap:8px}
+.prow{display:grid;grid-template-columns:2rem minmax(0,1fr) 4rem;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line)}
+.prow.first{background:var(--gold-soft);border-color:var(--gold)}
+.prow .rk{font-family:var(--mono);font-weight:700;color:var(--muted)}
+.prow .nm{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.prow .nm .sw{width:12px;height:12px;border-radius:50%;background:var(--c);flex:0 0 12px}
+.prow .bar{height:6px;border-radius:3px;background:var(--c);margin-top:6px}
+.prow .p{font-family:var(--mono);font-weight:700;font-size:1.3rem;text-align:right}
+.sort{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.sort{grid-template-columns:minmax(0,1fr)}}
+.sort > div{border-radius:var(--r);padding:12px 14px;border:1px solid var(--line);background:var(--surface-2)}
+.sort h4{margin:0 0 6px;font-family:var(--display)}
+.sort ul{margin:0;padding-left:1.1em;font-size:.9rem}
+textarea{width:100%;min-height:130px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:10px 12px;font-size:.95rem;resize:vertical}
+
+/* Setup */
+.setup{display:grid;gap:16px}
+.setup .names{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+.setup label{display:grid;gap:4px;font-weight:700;font-size:.9rem}
+.setup input[type=text]{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:8px 10px}
+#cjson{min-height:320px;font-family:var(--mono);font-size:.8rem;line-height:1.45}
+.msg{font-weight:700;font-size:.9rem}
+.msg.err{color:var(--pen)} .msg.good{color:var(--ok)}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <small>SMART-AI4Assessment · Zaragoza 2026</small>
+      <h1><span class="t">Teacher</span> <span class="or">or</span> <span class="a">AI?</span></h1>
+    </div>
+    <div class="board" id="board" aria-label="Scoreboard"></div>
+    <button class="iconbtn" data-act="setup" type="button">Setup</button>
+  </div>
+  <nav class="wrap tabs" id="tabs" aria-label="Rounds"></nav>
+</header>
+<main><div class="wrap" id="stage"></div></main>
+
+<script>
+const TEAM_COLORS=['--t1','--t2','--t3','--t4'];
+const SAMPLE={
+  sample:true,
+  task:{
+    subject:"Science · Grade 7",
+    objective:"Explain what happens in mitosis and why it matters.",
+    question:"Explain how one cell becomes two cells. Why does your body need this?",
+    rubric:[
+      [4,"Correct sequence (DNA copied, chromosomes separate, cell divides), two identical cells, and a correct purpose"],
+      [3,"Mostly correct process and purpose, one detail missing or vague"],
+      [2,"Says the cell splits into two and gives a purpose, but no mechanism"],
+      [1,"Fragment of the idea, or a purpose only"],
+      [0,"No relevant answer or only incorrect ideas"]
+    ]
+  },
+  answers:[
+    {id:"S03",text:"The cell makes a copy of its chromosomes. Then they are pulled apart and the cell splits into two cells that are the same. We need this so we can grow and replace old skin cells.",teacher:4,ai:4,aiConfidence:"High",aiFeedback:"You showed the full sequence: copying, separating and splitting into two identical cells. Your next step is to name this process (mitosis) and give one more example of repair.",decision:"Accepted as drafted",decisionNote:"Teacher added the word mitosis to the next step.",overridden:false},
+    {id:"S07",text:"One cell divides and become two. It is important for growing.",teacher:2,ai:2,aiConfidence:"High",aiFeedback:"You showed that one cell becomes two and that this helps us grow. Your next step is to explain what happens inside the cell before it splits.",decision:"Edited",decisionNote:"Teacher made the next step more concrete: 'Start with: first the DNA is copied…'.",overridden:false},
+    {id:"S12",text:"The nucleus copies the DNA. The cell gets bigger and then splits. New cells are identical. Our body needs them for repair when we cut ourselves.",teacher:3,ai:4,aiConfidence:"Medium",aiFeedback:"Excellent, complete explanation of mitosis with a clear purpose.",decision:"Overridden: 4 → 3",decisionNote:"The answer never says the chromosomes separate. The AI filled the gap and gave empty praise.",overridden:true},
+    {id:"S19",text:"cell divide because it is to big. then you have 2 cell with half of everything",teacher:1,ai:0,aiConfidence:"Low",aiFeedback:"Your answer is not correct. Read the textbook again.",decision:"Overridden: 0 → 1",decisionNote:"'Cell divides into 2' is a fragment of the idea, so level 1. The AI feedback had no usable next step.",overridden:true}
+  ],
+  twins:{
+    note:"Same content, two versions. Sent in one batch, then again in a new chat.",
+    fluent:{id:"S10",text:"The cell copies its DNA, the chromosomes separate to opposite sides, and the cell divides into two identical cells. This lets the body grow and repair damage.",run1:4,run2:4},
+    errors:{id:"S11",text:"The sel copy his DNA, chromosom go diferent side, after cel devide to two same cel. Body can grow and repear with this.",run1:3,run2:4},
+    teacher:4,
+    q1:{text:"Will the AI give the version with language errors a lower score?",answer:"Yes"},
+    q2:{text:"Will any score change when the same batch is sent again?",answer:"Yes"},
+    lesson:"The rubric does not assess language, yet run 1 scored S11 one level lower. Run 2 did not. Same input, different output: the teacher must check every AI score."
+  },
+  issues:[
+    {key:"ok",short:"Ready",label:"Ready to share",check:"Passes all five fairness questions."},
+    {key:"vague",short:"Vague",label:"Vague / no next step",check:"Does this feedback help the student take a concrete next step?"},
+    {key:"fact",short:"Wrong fact",label:"Factually wrong",check:"Can the teacher explain and, if needed, challenge the AI's suggestion?"},
+    {key:"lang",short:"Judges language",label:"Judges language, not learning",check:"Could language proficiency be confused with understanding?"},
+    {key:"label",short:"Labels student",label:"Labels or stereotypes the student",check:"Is the suggestion consistent across student profiles?"}
+  ],
+  cards:[
+    {text:"Great job! Keep up the good work.",context:"Feedback drafted for S07 (teacher score 2).",answer:"vague",fix:"Name one thing the student showed and one action: 'You showed that one cell becomes two. Next, explain what happens to the DNA first.'"},
+    {text:"You explained that the cell copies its DNA. Your next step is to say what happens to the chromosomes before the cell splits.",context:"Feedback drafted for S12 (teacher score 3).",answer:"ok",fix:"Share it. Specific evidence plus one achievable next step."},
+    {text:"Your answer has many spelling mistakes (sel, devide), so it scores 2.",context:"Feedback drafted for S11 (twin answer, content at level 4).",answer:"lang",fix:"Score the science. If spelling matters, give it as separate, optional language support."},
+    {text:"Correct! After mitosis each new cell has half of the DNA of the parent cell.",context:"Feedback drafted for S19.",answer:"fact",fix:"Each daughter cell has the full, identical set of DNA. Half is meiosis. Teacher rewrites before sharing."},
+    {text:"You always struggle with science vocabulary, like many students in your group.",context:"Feedback drafted for S19.",answer:"label",fix:"Remove all comments about the person or group. Comment on this answer only."}
+  ],
+  trial:{
+    sample:true,
+    school:"Partner school, Türkiye · Science, Grade 7",
+    answers:25, minutesWithout:75, minutesWith:40,
+    agree:17, offBy1:6, offBy2:2,
+    usedAsIs:9, edited:12, rejected:4,
+    studentsAgree:72,
+    teacherQuote:"",
+    studentQuote:""
+  }
+};
+
+const K_C='toai.content.v1', K_S='toai.state.v1';
+function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function freshState(){return{view:'intro',teams:['Team A','Team B','Team C','Team D'],manual:[0,0,0,0],
+  r1:{i:0,in:{},rev:{}},r2:{i:0,in:{},rev:{}},r3:{q1:[null,null,null,null],q2:[null,null,null,null],rev:false},
+  r4:{i:0,in:{},rev:{}},notes:'',confirmReset:false}}
+
+let C=load(K_C)||structuredClone(SAMPLE);
+let S=(window.claude&&window.claude.hot&&window.claude.hot.data&&window.claude.hot.data.S)||load(K_S)||freshState();
+try{window.claude?.hot?.snapshot?.(()=>({S}))}catch(e){}
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const col=t=>`var(${TEAM_COLORS[t]})`;
+function commit(){save(K_S,S);render()}
+
+/* ---------- scoring ---------- */
+function points(){
+  const p=[0,0,0,0], br={r1:[0,0,0,0],r2:[0,0,0,0],r3:[0,0,0,0],r4:[0,0,0,0]};
+  C.answers.forEach((a,i)=>{
+    if(S.r1.rev[i]) for(let t=0;t<4;t++){const g=(S.r1.in[i]||[])[t]; if(g===a.teacher){br.r1[t]+=1}}
+    if(S.r2.rev[i]) for(let t=0;t<4;t++){const g=(S.r2.in[i]||[])[t]; if(g==null)continue; const d=Math.abs(g-a.ai); br.r2[t]+=d===0?2:d===1?1:0}
+  });
+  if(S.r3.rev) for(let t=0;t<4;t++){ if(S.r3.q1[t]===C.twins.q1.answer)br.r3[t]+=1; if(S.r3.q2[t]===C.twins.q2.answer)br.r3[t]+=1 }
+  C.cards.forEach((c,i)=>{ if(S.r4.rev[i]) for(let t=0;t<4;t++){ if((S.r4.in[i]||[])[t]===c.answer)br.r4[t]+=2 } });
+  for(let t=0;t<4;t++)p[t]=br.r1[t]+br.r2[t]+br.r3[t]+br.r4[t]+(S.manual[t]||0);
+  return {p,br};
+}
+
+/* ---------- chrome ---------- */
+const VIEWS=[['intro','','How it works'],['r1','1','Blind grading'],['r2','2','Guess the AI'],['r3','3','Twin answers'],['r4','4','Feedback detective'],['debrief','','Debrief'],['setup','','Setup']];
+function renderBoard(){
+  const {p}=points(), max=Math.max(...p);
+  document.getElementById('board').innerHTML=S.teams.map((n,t)=>`
+    <div class="team ${max>0&&p[t]===max?'lead':''}" style="--c:${col(t)}">
+      <span class="sw"></span><span class="nm" title="${esc(n)}">${esc(n)}</span>
+      <span class="pts" aria-label="${esc(n)} points">${p[t]}</span>
+      <span class="adj"><button type="button" data-act="adj" data-t="${t}" data-d="-1" aria-label="Remove a point from ${esc(n)}">−</button><button type="button" data-act="adj" data-t="${t}" data-d="1" aria-label="Add a point to ${esc(n)}">+</button></span>
+    </div>`).join('');
+}
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=VIEWS.filter(v=>v[0]!=='setup').map(([k,n,l])=>`<button type="button" class="tab" data-act="view" data-v="${k}" aria-current="${S.view===k}">${n?`<span class="n">R${n}</span>`:''}${l}</button>`).join('');
+}
+function sampleNote(){return C.sample?`<div class="notice"><b>Example content.</b><span>These answers, AI drafts and teacher decisions are a worked example. Replace them with your own anonymised classroom trial in Setup before the session.</span></div>`:''}
+function taskPanel(){
+  const t=C.task;
+  return `<div class="panel task"><p class="label">${esc(t.subject)}</p><p><b>Task:</b> ${esc(t.question)}</p>
+  <details ${S.view==='r1'?'open':''}><summary>Rubric (0–${t.rubric[0][0]})</summary><ul class="rubric">${t.rubric.map(([l,d])=>`<li><span class="lv">${l}</span><span>${esc(d)}</span></li>`).join('')}</ul></details></div>`;
+}
+function pager(key,len){
+  const i=S[key].i;
+  return `<div class="pager"><button type="button" data-act="prev" data-k="${key}" ${i<=0?'disabled':''} aria-label="Previous">‹</button><span>${i+1} / ${len}</span><button type="button" data-act="next" data-k="${key}" data-len="${len}" ${i>=len-1?'disabled':''} aria-label="Next">›</button></div>`;
+}
+function scoreInputs(key,i,max,locked){
+  const vals=S[key].in[i]||[];
+  return `<div class="inputs">${S.teams.map((n,t)=>`<div class="irow" style="--c:${col(t)}"><div class="iname"><span class="sw"></span><span>${esc(n)}</span></div>
+    <div class="seg" role="group" aria-label="${esc(n)} score">${Array.from({length:max+1},(_,v)=>`<button type="button" data-act="pick" data-k="${key}" data-i="${i}" data-t="${t}" data-v="${v}" aria-pressed="${vals[t]===v}" ${locked?'disabled':''}>${v}</button>`).join('')}</div></div>`).join('')}</div>`;
+}
+function awards(arr){
+  return `<div class="award">${S.teams.map((n,t)=>`<span class="chip ${arr[t]>0?'plus':''}" style="--c:${col(t)}"><span class="sw"></span>${esc(n)} ${arr[t]>0?'+'+arr[t]:'+0'}</span>`).join('')}</div>`;
+}
+function scaleViz(vals,max,teacher,ai){
+  const x=v=>`${(v/max)*100}%`;
+  const stacks={};
+  const dots=vals.map((v,t)=>{ if(v==null)return''; const s=(stacks[v]=(stacks[v]||0)+1)-1; return `<span class="dot" style="--c:${col(t)};left:${x(v)};top:36px;margin-left:${s*16}px" title="${esc(S.teams[t])}: ${v}"></span>`}).join('');
+  return `<div class="scale" aria-hidden="true"><div class="axis"></div>${Array.from({length:max+1},(_,v)=>`<span class="tick" style="left:${x(v)}">${v}</span>`).join('')}
+    <span class="tm" style="left:${x(teacher)}"></span>${ai!=null?`<span class="am" style="left:${x(ai)}"></span>`:''}${dots}</div>`;
+}
+
+/* ---------- views ---------- */
+function vIntro(){
+  return `${sampleNote()}
+  <div class="stagehead"><div><h2>Four rounds. One real classroom. Who marks fairly?</h2>
+  <p>Every answer in this game comes from an anonymised Grade 7 science task that a teacher marked with and without AI help. Teams play the teacher, predict the AI, and catch the feedback that should never reach a student.</p></div></div>
+  <div class="rounds">
+    <div class="round"><span class="no">ROUND 1 · 10 MIN</span><h3>Blind grading</h3><p>Score real answers with the rubric. No AI yet. How far apart are 16 teachers?</p><span class="pt">+1 for matching the teacher's final score</span></div>
+    <div class="round"><span class="no">ROUND 2 · 10 MIN</span><h3>Guess the AI</h3><p>Predict the AI's score, then see its draft and what the teacher decided.</p><span class="pt">+2 exact · +1 one level off</span></div>
+    <div class="round"><span class="no">ROUND 3 · 15 MIN</span><h3>Twin answers</h3><p>Same science, different language. Does the AI punish errors? Does it change its mind?</p><span class="pt">+1 per correct prediction</span></div>
+    <div class="round"><span class="no">ROUND 4 · 15 MIN</span><h3>Feedback detective</h3><p>Five AI feedback drafts. Use the two-minute fairness check to spot what is wrong.</p><span class="pt">+2 per correct diagnosis</span></div>
+  </div>
+  <div class="panel"><p class="label">Rule of the game</p><p class="lead-p">The AI drafts. The teacher decides. Every score in this game ends with a teacher's decision, and the points reward judgement, not speed.</p></div>
+  <div class="actions"><button type="button" class="btn" data-act="view" data-v="r1">Start Round 1</button></div>`;
+}
+function vR1(){
+  const i=S.r1.i, a=C.answers[i], rev=!!S.r1.rev[i], vals=S.r1.in[i]||[], max=C.task.rubric[0][0];
+  let out=`${sampleNote()}<div class="stagehead"><div><h2>Round 1 · Blind grading</h2><p>Read the answer and agree one score per team using the rubric. Ignore spelling unless the rubric assesses language.</p></div>${pager('r1',C.answers.length)}</div>
+  <div class="grid2"><div class="sheet">${rev?`<div class="mark">${a.teacher}<small>/${max}</small></div>`:''}<div class="sid">${esc(a.id)}</div><p class="ans">${esc(a.text)}</p></div>${taskPanel()}</div>
+  <div class="panel">${scoreInputs('r1',i,max,rev)}</div>`;
+  if(!rev) out+=`<div class="actions"><button type="button" class="btn" data-act="reveal" data-k="r1" data-i="${i}">Reveal teacher's score</button><span class="hint">${vals.filter(v=>v!=null).length} of 4 teams have scored</span></div>`;
+  else{
+    const g=vals.filter(v=>v!=null), spread=g.length?Math.max(...g)-Math.min(...g):0;
+    const {br}=points(); const per=S.teams.map((_,t)=>vals[t]===a.teacher?1:0);
+    out+=`<div class="panel reveal"><p class="label">How the room scored</p>${scaleViz(vals,max,a.teacher,null)}
+      <div class="kpis"><div class="kpi t"><div class="k">Teacher's final score</div><div class="v">${a.teacher}</div></div><div class="kpi"><div class="k">Spread across teams</div><div class="v">${spread} level${spread===1?'':'s'}</div></div></div>
+      <p class="hint">${spread>=2?'Two levels apart on the same answer: this is the "inconsistent criteria" problem, before any AI is involved.':spread===1?'One level apart. Small differences add up across a class.':'Full agreement on this one.'}</p>
+      ${awards(per)}
+      <div class="actions"><button type="button" class="btn ghost" data-act="unreveal" data-k="r1" data-i="${i}">Undo reveal</button>${i<C.answers.length-1?`<button type="button" class="btn" data-act="next" data-k="r1" data-len="${C.answers.length}">Next answer</button>`:`<button type="button" class="btn" data-act="view" data-v="r2">Go to Round 2</button>`}</div></div>`;
+  }
+  return out;
+}
+function vR2(){
+  const i=S.r2.i, a=C.answers[i], rev=!!S.r2.rev[i], vals=S.r2.in[i]||[], max=C.task.rubric[0][0];
+  let out=`${sampleNote()}<div class="stagehead"><div><h2>Round 2 · Guess the AI</h2><p>The AI got the same rubric and the same answer. What score did it suggest?</p></div>${pager('r2',C.answers.length)}</div>
+  <div class="grid2"><div class="sheet"><div class="sid">${esc(a.id)}</div><p class="ans">${esc(a.text)}</p></div>${taskPanel()}</div>
+  <div class="panel">${scoreInputs('r2',i,max,rev)}</div>`;
+  if(!rev) out+=`<div class="actions"><button type="button" class="btn" data-act="reveal" data-k="r2" data-i="${i}">Reveal the AI's draft</button></div>`;
+  else{
+    const per=S.teams.map((_,t)=>{const g=vals[t];if(g==null)return 0;const d=Math.abs(g-a.ai);return d===0?2:d===1?1:0});
+    out+=`<div class="panel reveal"><p class="label">AI draft vs. teacher decision</p>${scaleViz(vals,max,a.teacher,a.ai)}
+      <div class="kpis"><div class="kpi a"><div class="k">AI suggested</div><div class="v">${a.ai}</div></div><div class="kpi"><div class="k">AI confidence</div><div class="v">${esc(a.aiConfidence)}</div></div><div class="kpi t"><div class="k">Teacher's final</div><div class="v">${a.teacher}</div></div></div>
+      <div class="aibox"><p class="label">AI feedback draft</p><p>${esc(a.aiFeedback)}</p></div>
+      <div class="decision ${a.overridden?'':'ok'}"><b>${esc(a.decision)}.</b> ${esc(a.decisionNote)}</div>
+      ${awards(per)}
+      <div class="actions"><button type="button" class="btn ghost" data-act="unreveal" data-k="r2" data-i="${i}">Undo reveal</button>${i<C.answers.length-1?`<button type="button" class="btn" data-act="next" data-k="r2" data-len="${C.answers.length}">Next answer</button>`:`<button type="button" class="btn" data-act="view" data-v="r3">Go to Round 3</button>`}</div></div>`;
+  }
+  return out;
+}
+function yn(q,locked){
+  return `<div class="inputs">${S.teams.map((n,t)=>`<div class="irow" style="--c:${col(t)}"><div class="iname"><span class="sw"></span><span>${esc(n)}</span></div>
+    <div class="seg words" role="group" aria-label="${esc(n)}">${['Yes','No'].map(v=>`<button type="button" data-act="yn" data-q="${q}" data-t="${t}" data-v="${v}" aria-pressed="${S.r3[q][t]===v}" ${locked?'disabled':''} class="${locked&&C.twins[q].answer===v?'right':''}">${v}</button>`).join('')}</div></div>`).join('')}</div>`;
+}
+function vR3(){
+  const w=C.twins, rev=S.r3.rev;
+  let out=`${sampleNote()}<div class="stagehead"><div><h2>Round 3 · Twin answers</h2><p>${esc(w.note)} Place your bets before the reveal.</p></div></div>
+  <div class="twins">
+    <div class="sheet"><span class="tag">Version A · fluent</span><div class="sid">${esc(w.fluent.id)}</div><p class="ans">${esc(w.fluent.text)}</p></div>
+    <div class="sheet"><span class="tag">Version B · language errors</span><div class="sid">${esc(w.errors.id)}</div><p class="ans">${esc(w.errors.text)}</p></div>
+  </div>
+  <div class="grid2"><div class="panel"><p class="qline">1. ${esc(w.q1.text)}</p>${yn('q1',rev)}</div><div class="panel"><p class="qline">2. ${esc(w.q2.text)}</p>${yn('q2',rev)}</div></div>`;
+  if(!rev) out+=`<div class="actions"><button type="button" class="btn" data-act="reveal3">Reveal the AI runs</button></div>`;
+  else{
+    const per=S.teams.map((_,t)=>(S.r3.q1[t]===w.q1.answer?1:0)+(S.r3.q2[t]===w.q2.answer?1:0));
+    const row=(lab,v)=>`<tr><td>${lab}</td><td class="n">${v.run1}</td><td class="n ${v.run2!==v.run1?'diff':''}">${v.run2}</td><td class="n">${w.teacher}</td></tr>`;
+    out+=`<div class="panel reveal"><p class="label">What the AI did</p><div class="tblwrap"><table><thead><tr><th>Version</th><th>Run 1</th><th>Run 2 (new chat)</th><th>Teacher</th></tr></thead><tbody>${row('A · fluent ('+esc(w.fluent.id)+')',w.fluent)}${row('B · language errors ('+esc(w.errors.id)+')',w.errors)}</tbody></table></div>
+      <div class="decision"><b>Answers: ${esc(w.q1.answer)}, ${esc(w.q2.answer)}.</b> ${esc(w.lesson)}</div>${awards(per)}
+      <div class="actions"><button type="button" class="btn ghost" data-act="unreveal3">Undo reveal</button><button type="button" class="btn" data-act="view" data-v="r4">Go to Round 4</button></div></div>`;
+  }
+  return out;
+}
+function vR4(){
+  const i=S.r4.i, c=C.cards[i], rev=!!S.r4.rev[i], vals=S.r4.in[i]||[];
+  const right=C.issues.find(x=>x.key===c.answer)||{};
+  let out=`${sampleNote()}<div class="stagehead"><div><h2>Round 4 · Feedback detective</h2><p>Would you send this AI draft to the student? Diagnose it with the two-minute fairness check.</p></div>${pager('r4',C.cards.length)}</div>
+  <div class="grid2"><div class="fcard"><p class="label">AI feedback draft</p><q>“${esc(c.text)}”</q><p class="ctx">${esc(c.context)}</p></div>
+  <div class="panel"><p class="label">Diagnoses</p><ul class="legend">${C.issues.map(x=>`<li><b>${esc(x.short)}</b>${esc(x.label)}</li>`).join('')}</ul></div></div>
+  <div class="panel"><div class="inputs">${S.teams.map((n,t)=>`<div class="irow" style="--c:${col(t)}"><div class="iname"><span class="sw"></span><span>${esc(n)}</span></div>
+    <div class="seg words" role="group" aria-label="${esc(n)} diagnosis">${C.issues.map(x=>`<button type="button" data-act="pick" data-k="r4" data-i="${i}" data-t="${t}" data-v="${x.key}" aria-pressed="${vals[t]===x.key}" ${rev?'disabled':''} class="${rev&&x.key===c.answer?'right':''}">${esc(x.short)}</button>`).join('')}</div></div>`).join('')}</div></div>`;
+  if(!rev) out+=`<div class="actions"><button type="button" class="btn" data-act="reveal" data-k="r4" data-i="${i}">Reveal diagnosis</button></div>`;
+  else{
+    const per=S.teams.map((_,t)=>vals[t]===c.answer?2:0);
+    out+=`<div class="panel reveal"><p class="label">Diagnosis</p>
+      <div class="decision ${c.answer==='ok'?'ok':''}"><b>${esc(right.label)}.</b> Fairness check: ${esc(right.check)}</div>
+      <div class="aibox"><p class="label">What the teacher does</p><p>${esc(c.fix)}</p></div>${awards(per)}
+      <div class="actions"><button type="button" class="btn ghost" data-act="unreveal" data-k="r4" data-i="${i}">Undo reveal</button>${i<C.cards.length-1?`<button type="button" class="btn" data-act="next" data-k="r4" data-len="${C.cards.length}">Next card</button>`:`<button type="button" class="btn" data-act="view" data-v="debrief">Go to debrief</button>`}</div></div>`;
+  }
+  return out;
+}
+function vDebrief(){
+  const {p,br}=points(), max=Math.max(1,...p);
+  const order=[0,1,2,3].sort((a,b)=>p[b]-p[a]);
+  const tr=C.trial||{};
+  const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
+  return `<div class="stagehead"><div><h2>Debrief</h2><p>Scores, the real classroom numbers, and what goes into the GDPR and ethics checklist.</p></div></div>
+  <div class="grid2">
+    <div class="panel"><p class="label">Final standings</p><div class="podium">${order.map((t,r)=>`<div class="prow ${r===0&&p[t]>0?'first':''}" style="--c:${col(t)}"><span class="rk">${r+1}</span><div style="min-width:0"><div class="nm"><span class="sw"></span>${esc(S.teams[t])}</div><div class="bar" style="width:${(p[t]/max)*100}%"></div><div class="hint">R1 ${br.r1[t]} · R2 ${br.r2[t]} · R3 ${br.r3[t]} · R4 ${br.r4[t]}${S.manual[t]?' · adj '+(S.manual[t]>0?'+':'')+S.manual[t]:''}</div></div><span class="p">${p[t]}</span></div>`).join('')}</div></div>
+    <div class="panel"><p class="label">The classroom trial ${tr.sample?'<span class="chip" style="margin-left:6px">Example figures</span>':''}</p><p class="hint" style="margin-top:0">${esc(tr.school||'')}</p>
+      <div class="kpis"><div class="kpi"><div class="k">Answers</div><div class="v">${tr.answers??'—'}</div></div>
+      <div class="kpi"><div class="k">Minutes without AI</div><div class="v">${tr.minutesWithout??'—'}</div></div>
+      <div class="kpi a"><div class="k">With AI + review</div><div class="v">${tr.minutesWith??'—'}</div></div>
+      <div class="kpi"><div class="k">AI = teacher</div><div class="v">${pct(tr.agree,tr.answers)}</div></div>
+      <div class="kpi t"><div class="k">Off by 2+ levels</div><div class="v">${tr.offBy2??'—'}</div></div>
+      <div class="kpi"><div class="k">Feedback used as is</div><div class="v">${pct(tr.usedAsIs,tr.answers)}</div></div>
+      <div class="kpi"><div class="k">Students: clear next step</div><div class="v">${tr.studentsAgree!=null?tr.studentsAgree+'%':'—'}</div></div></div>
+      ${tr.teacherQuote?`<p><b>Teacher:</b> “${esc(tr.teacherQuote)}”</p>`:''}${tr.studentQuote?`<p><b>Student:</b> “${esc(tr.studentQuote)}”</p>`:''}
+    </div>
+  </div>
+  <div class="panel"><p class="label">Where does each task belong?</p><div class="sort">
+    <div><h4>AI can do</h4><ul><li>Structure the rubric</li><li>Draft question variants</li><li>Sort anonymised answers</li></ul></div>
+    <div><h4>AI can assist</h4><ul><li>Draft a score with evidence</li><li>Draft feedback in plain language</li><li>Flag answers the teacher should reread</li></ul></div>
+    <div><h4>Teacher only</h4><ul><li>The final score</li><li>Overriding a wrong or biased draft</li><li>Sensitive feedback, said in person</li></ul></div>
+  </div></div>
+  <div class="panel"><label class="label" for="notes">Findings for the GDPR and ethics checklist</label><textarea id="notes" data-act="notes" placeholder="One line per finding, e.g. 'Run every batch twice; investigate any score that changes.'">${esc(S.notes)}</textarea></div>`;
+}
+function vSetup(){
+  return `<div class="stagehead"><div><h2>Setup</h2><p>Name the four mixed-country teams and load your own anonymised classroom content. Everything stays in this browser.</p></div></div>
+  <div class="panel setup">
+    <div class="names">${S.teams.map((n,t)=>`<label for="tn${t}" style="color:${col(t)}">Team ${t+1}<input type="text" id="tn${t}" data-act="tname" data-t="${t}" value="${esc(n)}" maxlength="24"></label>`).join('')}</div>
+  </div>
+  <div class="panel setup">
+    <div><p class="label">Game content (JSON)</p><p class="hint" style="margin:0">Edit answers, AI drafts, teacher decisions, twin answers, feedback cards and the trial numbers. Keep student work anonymised. Set <code>"sample": false</code> to hide the example banner.</p></div>
+    <textarea id="cjson" spellcheck="false">${esc(JSON.stringify(C,null,2))}</textarea>
+    <div class="actions"><button type="button" class="btn" data-act="applyjson">Apply content</button><button type="button" class="btn ghost" data-act="restore">Restore example content</button><span class="msg" id="msg" role="status"></span></div>
+  </div>
+  <div class="panel setup"><p class="label">Reset scores</p><p class="hint" style="margin:0">Clears all team inputs, reveals and point adjustments. Team names and content stay.</p>
+    <div class="actions">${S.confirmReset?`<button type="button" class="btn danger" data-act="resetyes">Yes, clear all scores</button><button type="button" class="btn ghost" data-act="resetno">Cancel</button>`:`<button type="button" class="btn ghost" data-act="resetask">Reset scores…</button>`}</div></div>
+  <div class="actions"><button type="button" class="btn" data-act="view" data-v="intro">Back to the game</button></div>`;
+}
+
+function render(){
+  renderBoard(); renderTabs();
+  const v={intro:vIntro,r1:vR1,r2:vR2,r3:vR3,r4:vR4,debrief:vDebrief,setup:vSetup}[S.view]||vIntro;
+  document.getElementById('stage').innerHTML=v();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b||b.tagName==='TEXTAREA'||b.tagName==='INPUT')return;
+  const d=b.dataset, act=d.act;
+  if(act==='view'){S.view=d.v;S.confirmReset=false;commit();window.scrollTo({top:0});return}
+  if(act==='setup'){S.view='setup';commit();window.scrollTo({top:0});return}
+  if(act==='adj'){S.manual[+d.t]=(S.manual[+d.t]||0)+(+d.d);commit();return}
+  if(act==='prev'){S[d.k].i=Math.max(0,S[d.k].i-1);commit();return}
+  if(act==='next'){S[d.k].i=Math.min(+d.len-1,S[d.k].i+1);commit();window.scrollTo({top:0});return}
+  if(act==='pick'){const k=d.k,i=d.i;const arr=S[k].in[i]||[null,null,null,null];const v=k==='r4'?d.v:+d.v;arr[+d.t]=arr[+d.t]===v?null:v;S[k].in[i]=arr;commit();return}
+  if(act==='reveal'){S[d.k].rev[d.i]=true;commit();return}
+  if(act==='unreveal'){delete S[d.k].rev[d.i];commit();return}
+  if(act==='yn'){const q=d.q,t=+d.t;S.r3[q][t]=S.r3[q][t]===d.v?null:d.v;commit();return}
+  if(act==='reveal3'){S.r3.rev=true;commit();return}
+  if(act==='unreveal3'){S.r3.rev=false;commit();return}
+  if(act==='resetask'){S.confirmReset=true;commit();return}
+  if(act==='resetno'){S.confirmReset=false;commit();return}
+  if(act==='resetyes'){const t=S.teams;S=freshState();S.teams=t;S.view='setup';commit();return}
+  if(act==='restore'){C=structuredClone(SAMPLE);save(K_C,C);S.r1.i=S.r2.i=S.r4.i=0;commit();setMsg('Example content restored.',true);return}
+  if(act==='applyjson'){
+    try{
+      const nc=JSON.parse(document.getElementById('cjson').value);
+      if(!nc.task||!Array.isArray(nc.task.rubric)||!Array.isArray(nc.answers)||!nc.answers.length||!nc.twins||!Array.isArray(nc.cards)||!Array.isArray(nc.issues)) throw new Error('Content needs task.rubric, answers, twins, issues and cards.');
+      C=nc;save(K_C,C);S.r1.i=Math.min(S.r1.i,C.answers.length-1);S.r2.i=Math.min(S.r2.i,C.answers.length-1);S.r4.i=Math.min(S.r4.i,C.cards.length-1);commit();setMsg('Content applied.',true);
+    }catch(err){setMsg('Could not apply: '+err.message,false)}
+    return;
+  }
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.act==='tname'){S.teams[+el.dataset.t]=el.value||('Team '+(+el.dataset.t+1));save(K_S,S);renderBoard();return}
+  if(el.dataset.act==='notes'){S.notes=el.value;save(K_S,S);return}
+});
+function setMsg(t,ok){const m=document.getElementById('msg');if(m){m.textContent=t;m.className='msg '+(ok?'good':'err')}}
+
+function start(){render()}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+
+</body>
+</html>
